@@ -12,13 +12,16 @@
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "lint": "cross-env NODE_OPTIONS=--no-deprecation eslint .",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
+    "seed": "cross-env NODE_OPTIONS=\"--no-deprecation --import=tsx/esm\" tsx src/seed/seedLocalhost.ts",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
     "test": "pnpm run test:int && pnpm run test:e2e",
     "test:e2e": "cross-env NODE_OPTIONS=\"--no-deprecation --import=tsx/esm\" playwright test --config=playwright.config.ts",
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts"
   },
   "dependencies": {
+    "@payloadcms/db-postgres": "3.85.0",
     "@payloadcms/next": "3.85.0",
+    "@payloadcms/plugin-multi-tenant": "3.85.0",
     "@payloadcms/richtext-lexical": "3.85.0",
     "@payloadcms/ui": "3.85.0",
     "cross-env": "^7.0.3",
@@ -28,8 +31,7 @@
     "payload": "3.85.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "sharp": "0.34.2",
-    "@payloadcms/db-postgres": "3.85.0"
+    "sharp": "0.34.2"
   },
   "devDependencies": {
     "@playwright/test": "1.58.2",

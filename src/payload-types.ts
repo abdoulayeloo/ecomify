@@ -69,6 +69,14 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    tenants: Tenant;
+    domains: Domain;
+    themes: Theme;
+    pages: Page;
+    'product-collections': ProductCollection;
+    products: Product;
+    orders: Order;
+    transactions: Transaction;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,18 +86,26 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    tenants: TenantsSelect<false> | TenantsSelect<true>;
+    domains: DomainsSelect<false> | DomainsSelect<true>;
+    themes: ThemesSelect<false> | ThemesSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
+    'product-collections': ProductCollectionsSelect<false> | ProductCollectionsSelect<true>;
+    products: ProductsSelect<false> | ProductsSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
+    transactions: TransactionsSelect<false> | TransactionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: string;
+    defaultIDType: number;
   };
-  fallbackLocale: null;
+  fallbackLocale: ('false' | 'none' | 'null') | false | null | ('fr' | 'en') | ('fr' | 'en')[];
   globals: {};
   globalsSelect: {};
-  locale: null;
+  locale: 'fr' | 'en';
   widgets: {
     collections: CollectionsWidget;
   };
@@ -122,7 +138,13 @@ export interface UserAuthOperations {
  * via the `definition` "users".
  */
 export interface User {
-  id: string;
+  id: number;
+  tenants?:
+    | {
+        tenant: number | Tenant;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -144,10 +166,66 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenants".
+ */
+export interface Tenant {
+  id: number;
+  name: string;
+  status: 'active' | 'suspended';
+  activeTheme?: (number | null) | Theme;
+  themeSettings?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  paymentConfig?: {
+    provider?: ('paydunya' | 'cinetpay' | 'stripe') | null;
+    credentials?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    mode?: ('test' | 'live') | null;
+  };
+  defaultCurrency?: string | null;
+  defaultLocale?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "themes".
+ */
+export interface Theme {
+  id: number;
+  name: string;
+  slug: string;
+  schema?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
-  id: string;
+  id: number;
   alt: string;
   updatedAt: string;
   createdAt: string;
@@ -163,10 +241,175 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "domains".
+ */
+export interface Domain {
+  id: number;
+  hostname: string;
+  tenant: number | Tenant;
+  isPrimary?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  slug: string;
+  title?: string | null;
+  sections?:
+    | (
+        | {
+            title?: string | null;
+            subtitle?: string | null;
+            image?: (number | null) | Media;
+            ctaText?: string | null;
+            ctaHref?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'hero';
+          }
+        | {
+            heading?: string | null;
+            collection?: (number | null) | ProductCollection;
+            columns?: number | null;
+            limit?: number | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'product-grid';
+          }
+        | {
+            content?: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            } | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'rich-text';
+          }
+      )[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-collections".
+ */
+export interface ProductCollection {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  title: string;
+  slug: string;
+  parent?: (number | null) | ProductCollection;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  title: string;
+  slug: string;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  price: number;
+  currency?: string | null;
+  images?: (number | Media)[] | null;
+  collection?: (number | null) | ProductCollection;
+  stock?: number | null;
+  status?: ('draft' | 'active' | 'archived') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  orderNumber?: string | null;
+  items?:
+    | {
+        product?: (number | null) | Product;
+        quantity?: number | null;
+        unitPrice?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  total: number;
+  currency: string;
+  customer?: {
+    name?: string | null;
+    phone?: string | null;
+    email?: string | null;
+  };
+  status?: ('pending' | 'paid' | 'fulfilled' | 'cancelled' | 'refunded') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "transactions".
+ */
+export interface Transaction {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  order: number | Order;
+  provider?: string | null;
+  providerRef?: string | null;
+  amount?: number | null;
+  currency?: string | null;
+  status?: ('pending' | 'success' | 'failed') | null;
+  rawWebhook?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: string;
+  id: number;
   key: string;
   data:
     | {
@@ -183,20 +426,52 @@ export interface PayloadKv {
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: string;
+  id: number;
   document?:
     | ({
         relationTo: 'users';
-        value: string | User;
+        value: number | User;
       } | null)
     | ({
         relationTo: 'media';
-        value: string | Media;
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'tenants';
+        value: number | Tenant;
+      } | null)
+    | ({
+        relationTo: 'domains';
+        value: number | Domain;
+      } | null)
+    | ({
+        relationTo: 'themes';
+        value: number | Theme;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'product-collections';
+        value: number | ProductCollection;
+      } | null)
+    | ({
+        relationTo: 'products';
+        value: number | Product;
+      } | null)
+    | ({
+        relationTo: 'orders';
+        value: number | Order;
+      } | null)
+    | ({
+        relationTo: 'transactions';
+        value: number | Transaction;
       } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -206,10 +481,10 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: string;
+  id: number;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   key?: string | null;
   value?:
@@ -229,7 +504,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: string;
+  id: number;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -240,6 +515,12 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  tenants?:
+    | T
+    | {
+        tenant?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -274,6 +555,166 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenants_select".
+ */
+export interface TenantsSelect<T extends boolean = true> {
+  name?: T;
+  status?: T;
+  activeTheme?: T;
+  themeSettings?: T;
+  paymentConfig?:
+    | T
+    | {
+        provider?: T;
+        credentials?: T;
+        mode?: T;
+      };
+  defaultCurrency?: T;
+  defaultLocale?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "domains_select".
+ */
+export interface DomainsSelect<T extends boolean = true> {
+  hostname?: T;
+  tenant?: T;
+  isPrimary?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "themes_select".
+ */
+export interface ThemesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  schema?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  tenant?: T;
+  slug?: T;
+  title?: T;
+  sections?:
+    | T
+    | {
+        hero?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              image?: T;
+              ctaText?: T;
+              ctaHref?: T;
+              id?: T;
+              blockName?: T;
+            };
+        'product-grid'?:
+          | T
+          | {
+              heading?: T;
+              collection?: T;
+              columns?: T;
+              limit?: T;
+              id?: T;
+              blockName?: T;
+            };
+        'rich-text'?:
+          | T
+          | {
+              content?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-collections_select".
+ */
+export interface ProductCollectionsSelect<T extends boolean = true> {
+  tenant?: T;
+  title?: T;
+  slug?: T;
+  parent?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products_select".
+ */
+export interface ProductsSelect<T extends boolean = true> {
+  tenant?: T;
+  title?: T;
+  slug?: T;
+  description?: T;
+  price?: T;
+  currency?: T;
+  images?: T;
+  collection?: T;
+  stock?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders_select".
+ */
+export interface OrdersSelect<T extends boolean = true> {
+  tenant?: T;
+  orderNumber?: T;
+  items?:
+    | T
+    | {
+        product?: T;
+        quantity?: T;
+        unitPrice?: T;
+        id?: T;
+      };
+  total?: T;
+  currency?: T;
+  customer?:
+    | T
+    | {
+        name?: T;
+        phone?: T;
+        email?: T;
+      };
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "transactions_select".
+ */
+export interface TransactionsSelect<T extends boolean = true> {
+  tenant?: T;
+  order?: T;
+  provider?: T;
+  providerRef?: T;
+  amount?: T;
+  currency?: T;
+  status?: T;
+  rawWebhook?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

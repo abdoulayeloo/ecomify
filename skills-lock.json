@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "payload-multitenant-storefront": {
+      "source": "abdoulayeloo/storefront-skills",
+      "sourceType": "github",
+      "computedHash": "aa2222292b3e09364d917e51b61573a70f5d681175b77e419e735137768dcd94"
+    }
+  }
+}
